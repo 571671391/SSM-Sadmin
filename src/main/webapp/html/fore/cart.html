@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>购物车页面</title>
+<link rel="stylesheet" type="text/css" href="../../css/common.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript">
+   $(document).ready(function(){
+	   $.ajax({
+		   url:"../../rainbow/sendUsername",
+		   type: "post",
+		   async:false,
+		   dataType:"json",
+		   success:function(data){
+			   $("#username").text("欢迎用户："+data.username);
+			   var username=data.username;
+			   $.ajax({
+				   url:"../../rainbow/showCart",
+				   type:"post",
+				   async:false,
+				   data:JSON.stringify({username:username,purchasePlan:"jrgwc"}),
+				   contentType:"application/json;charset=UTF-8",
+				   dataType:"json",
+				   success:function(data){
+					   var amountCount=0;
+					   var sum=0;
+					   var total=0;
+					   if(data == null || data == ""){
+						   $("#content").remove();
+						   $("#pay").remove();
+					   }else{
+						   $("#fedy").remove();
+					   }		
+					   $.each(data,function(i,d){
+						   amountCount=d.commoditySellPrice*d.nums;
+						   sum=sum+d.nums;
+						   total=total+amountCount;
+						   var ele='<tr id="tr'+d.cartId+'"><td width="68"><a href="details.html?id='+d.commodityId+'"><img src='+d.imgSrc+' class="img"></a></td><td><a href="details.html?id='+d.commodityId+'">'+d.commodityName+'</a><p class="stxt"></p></td><td align="center"><div id='+d.commodityId+'>￥'+d.commoditySellPrice+'</div></td><td align="center"><div class="buy-box"><input type="button" class="input" value="-" onclick=edit(this,'+d.commodityId+') style="outline：none;background:#ffffff;"><input type="number" id="num'+d.commodityId+'" readonly ="readonly" class="input" value='+d.nums+' style="border: solid 1px #666;"><input type="button" class="input" value="+" onclick=edit(this,'+d.commodityId+') style="outline：none;background:#ffffff;"></div></td><td align="center"><span class="red">￥<label class='+d.commodityId+'>'+amountCount+'</label></spqn></td><td align="center"><a href="javascript:onclick=del('+d.cartId+')">删除</a></td></tr>';
+						   $("#tbody").append(ele);						 
+					   })
+					   $("#sum").html(sum);
+					   $("#total").html(total);
+				   },
+				   error:function(data){
+					   $("#content").remove();
+					   $("#pay").remove();
+				   }
+			   });
+		   },
+		   error:function(data){
+			   alert("出错了！");
+		   }
+	   })
+   })
+   function edit(obj,id){
+	   if(obj.value=="+"){
+		   $("#num"+id).val(parseInt($("#num"+id).val())+1);
+		   $("."+id).text((parseInt($("#"+id).text().replace("￥",""))*parseInt($("#num"+id).val())));
+		   $("#sum").text(parseInt($("#sum").text())+1);
+		   $("#total").text(parseInt($("#total").text().replace("￥",""))+parseInt($("#"+id).text().replace("￥","")));
+	   }else if($("#num"+id).val()>1){
+		   $("#num"+id).val(parseInt($("#num"+id).val())-1);
+		   $("."+id).text((parseInt($("#"+id).text().replace("￥",""))*parseInt($("#num"+id).val())));
+		   $("#sum").text(parseInt($("#sum").text())-1);
+		   $("#total").text(parseInt($("#total").text().replace("￥",""))-parseInt($("#"+id).text().replace("￥","")));
+	   }
+   }
+   function del(id){
+	   if(confirm('确定删除吗?')){
+		   $.ajax({
+				  url:"../../rainbow/deleteCart",
+				  type:"post",
+				  data:JSON.stringify({id:id}),
+				  contentType:"application/json;charset=UTF-8",
+				  dataType:"json",
+				  success:function(data){
+					  $("#tr"+id).remove();
+				  },
+				  error:function(data){
+					  alert("删除失败");
+				  }
+			   });
+	   }
+   }
+   window.onbeforeunload=function(){
+	   var username=document.getElementById("username").innerHTML.replace("欢迎用户：","");      
+	   $.ajax({
+		   url:"../../rainbow/showCart",
+		   type:"post",
+		   async: false,
+		   data:JSON.stringify({username:username}),
+		   contentType:"application/json;charset=UTF-8",
+		   dataType:"json",
+		   success:function(data){
+			   var id=null;
+			   var nums=null;
+			   $.each(data,function(i,d){
+				   id=d.cartId;
+				   nums=$("#num"+d.commodityId).val();
+				   if(nums!=null){
+				     $.ajax({
+					     url:"../../rainbow/updateCartById",
+					     type:"post",
+					     data:JSON.stringify({id:id,nums:nums}),
+					     contentType:"application/json;charset=UTF-8",
+					     dataType:"json",
+					     success:function(data){
+					     }
+				     });
+				   }
+			   })
+		   }
+	   }); 	   
+   }
+</script>
+</head>
+<body>
+	<div class="top-header">
+		<div class="section">
+			<div class="top-header-left f-left">
+				<a href="javascript:;">LOGO</a>
+			</div>
+			<div class="top-header-right f-right">
+				<a href="javascript:;" id="username"></a> 
+				<a href="../../rainbow/closeUserSession">注销</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="section nav-header">
+		<ul class="nav-menus f-left">
+			<li><a href="login.html">首页</a></li>
+			<li><a href="productlist.html">商品列表</a></li>
+			<li><a href="cart.html" class="active">购物车</a></li>
+			<li><a href="user.html">用户中心</a></li>
+		</ul>
+		<div class="f-right nav-right">
+			<input type="text" name="search" class="seacher-input f-left"placeholder="输入关键字"> 
+			<input type="submit" class="seacher-but  f-left" value="搜索">
+		</div>
+	</div>
+
+	<div class="section">
+		<div class="cart-head">
+			<h2>我的购物车</h2>
+			<div class="cart-setp">
+				<ul>
+					<li class="first active">
+						<div class="progress">
+							<span>1</span> 放进购物车
+						</div>
+					</li>
+					<li>
+						<div class="progress">
+							<span>2</span> 填写订单信息
+						</div>
+					</li>
+					<li class="last">
+						<div class="progress">
+							<span>3</span> 支付/确认订单
+						</div>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+	</div>
+
+  
+	<div class="section"> 
+	   <div id="fedy" class="msg-tips">
+		  <div class="icon"></div>
+		  <div class="info">
+		     <strong>您的购物车空空如也！</strong>
+			 <p>
+				您可以点击这里进入<a href="productlist.html">商城首页</a>选购商品！
+			 </p>
+			 <p>如有其它问题，请立即与我们客服人员联系。</p>
+	      </div>
+	   </div>
+				 
+		<table id="content" width="100%" align="center" class="cart-table" border="0" cellspacing="0" cellpadding="8">
+			<thead>
+				<tr>
+					<th align="left" colspan="2">商品信息</th>
+					<th width="84" align="center">单价</th>
+					<th width="104" align="center">数量</th>
+					<th width="104" align="center">金额(元)</th>
+					<th width="54" align="center">操作</th>
+				</tr>
+			</thead>
+			<tbody id="tbody">
+			</tbody>
+			<thead>
+				<tr>
+				  <th align="right" colspan="6">已选择商品 
+				    <b id="sum" class="red" id="totalQuantity"></b> 
+				          件 &nbsp;&nbsp;&nbsp; 商品总金额（不含运费）：
+				    <span class="red">￥</span>
+				    <b id="total" class="red" id="totalAmount"></b>元
+				  </th>
+                </tr>
+			</thead>
+		</table>
+		<div id="pay" class="cart-foot section">
+		  <div class="right-box">
+			<button class="button" onclick="javascript:location.href='productlist.html';">继续购物</button>
+			<button class="submit" onclick="javascript:location.href='writeorder.html';">立即结算</button>
+		  </div>
+	    </div>
+	</div>
+</body>
+</html>

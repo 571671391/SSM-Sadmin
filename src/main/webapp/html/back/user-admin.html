@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>用户管理页面</title>
+<link rel="stylesheet" type="text/css" href="../../layui/css/layui.css">
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+</head>
+<style>
+    body{margin: 10px;}
+    .demo-carousel{height: 200px; line-height: 200px; text-align: center;}
+</style>
+<body class="layui-layout-body">
+
+  <div class="layui-inline">
+     <input name="keyWord" id="keyWord" class="layui-input" autocomplete="off" placeholder="请输入关键字">
+  </div>
+  <select name="keyType" id="key_type" lay-verify="" class="layui-inline" style="height:37.5px;">
+    <option value="110" selected>ID</option>
+    <option value="111">用户名</option>
+  </select> 
+  <button class="layui-btn" data-type="reload">搜索</button>
+
+  <table class="layui-hide" id="demo" lay-filter="test"></table>
+  
+  <script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+  </script>
+ 
+  <div class="layui-tab layui-tab-brief" lay-filter="demo">
+    <div class="layui-tab-content">
+      <div class="layui-tab-item layui-show">
+        <div class="layui-carousel" id="test1">
+          <div carousel-item>
+            <div><p class="layui-bg-green demo-carousel">在这里，你将以最直观的形式体验 layui！</p></div>
+            <div><p class="layui-bg-red demo-carousel">在编辑器中可以执行 layui 相关的一切代码</p></div>
+            <div><p class="layui-bg-blue demo-carousel">你也可以点击左侧导航针对性地试验我们提供的示例</p></div>
+            <div><p class="layui-bg-orange demo-carousel">如果最左侧的导航的高度超出了你的屏幕</p></div>
+            <div><p class="layui-bg-cyan demo-carousel">你可以将鼠标移入导航区域，然后滑动鼠标滚轮即可</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+<script>
+layui.config({
+  version: '1568076536616' //为了更新 js 缓存，可忽略
+});
+
+//JavaScript代码区域
+layui.use('element', function(){
+var element = layui.element;
+});
+
+layui.use(['laypage', 'table','carousel','element'],function(){
+  var laypage = layui.laypage //分页 
+      ,table = layui.table //表格
+      ,carousel = layui.carousel //轮播
+      ,element = layui.element //元素操作
+      
+  
+  
+  //监听Tab切换
+  element.on('tab(demo)', function(data){
+    layer.tips('切换了 '+ data.index +'：'+ this.innerHTML, this, {
+      tips: 1
+    });
+  });
+  
+  //执行一个 table 实例
+  table.render({
+    elem: '#demo'
+    ,height: 400
+    ,url: '../../admin/selectUserList' //数据接口
+    ,method: 'post'
+    ,limit: '10'
+    ,title: '用户表'
+    ,page: true //开启分页
+    ,toolbar: 'default' //开启工具栏，此处显示默认图标，可以自定义模板，详见文档
+    ,totalRow: false //开启合计行
+    ,cols: [[ //表头
+      {type: 'checkbox', fixed: 'left'}
+      ,{field: 'id', title: 'ID', width:80, sort: true, fixed: 'left', totalRowText: '合计：'}
+      ,{field: 'username', title: '用户名', width:125}
+      ,{field: 'password', title: '密码', width:150,totalRow: true}
+      ,{field: 'sex', title: '性别', width:90,totalRow: true}
+      ,{field: 'age', title: '年龄', width:90} 
+      ,{field: 'phone', title: '电话', width: 150}
+      ,{fixed: 'right', width: 165, align:'center', toolbar: '#barDemo'}
+    ]]
+  });
+  
+  //监听头工具栏事件
+  table.on('toolbar(test)', function(obj){
+    var checkStatus = table.checkStatus(obj.config.id)
+    ,data = checkStatus.data; //获取选中的数据
+    switch(obj.event){
+      case 'add':
+        AddUv();
+      break;
+      case 'update':
+        if(data.length === 0){
+          layer.msg('请选择一行');
+        } else if(data.length > 1){
+          layer.msg('只能同时编辑一个');
+        } else {
+          EidtOne(checkStatus,obj);
+        }
+      break;
+      case 'delete':
+        if(data.length === 0){
+          layer.msg('请选择一行');
+        } else {
+        	layer.confirm('真的删除行么', function(index){
+          	  $.ajax({
+                    url: "../../admin/deleteUserById",
+                    type: "post",
+                    data: JSON.stringify({"id":checkStatus.data[0].id}),
+                    contentType: "application/json;charset=UTF-8",
+                    datatype: "json",
+                    success:function(data){
+                  	  if(data.id==1){
+                  	      layer.msg("删除成功",{icon:6},function(){
+                  	  	    setTimeout('window.location.reload()',1);
+                  	      });
+                        }else{
+                      	  layer.msg("删除失败",{icon:5});  
+                        }
+                    }
+                });
+            });
+        }
+      break;
+    };
+  });
+  
+  //监听行工具事件
+  table.on('tool(test)', function(obj){ //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+    var data = obj.data //获得当前行数据
+    ,layEvent = obj.event; //获得 lay-event 对应的值
+    if(layEvent === 'detail'){
+      layer.msg('ID:'+data.id+"&nbsp;&nbsp;&nbsp;用户名:"+data.username+"&nbsp;&nbsp;&nbsp;密码:"+data.password+"&nbsp;&nbsp;&nbsp;性别:"+data.sex+"&nbsp;&nbsp;&nbsp;年龄:"+data.age+"&nbsp;&nbsp;&nbsp;电话:"+data.phone);
+    } else if(layEvent === 'del'){
+      layer.confirm('真的删除行么', function(index){
+    	  $.ajax({
+              url: "../../admin/deleteUserById",
+              type: "post",
+              data: JSON.stringify({"id":data.id}),
+              contentType: "application/json;charset=UTF-8",
+              datatype: "json",
+              success:function(data){
+            	  if(data.id==1){
+            		  obj.del(); //删除对应行（tr）的DOM结构
+                      layer.close(index);//向服务端发送删除指令 
+            	      layer.msg("删除成功",{icon:6});
+                  }else{
+                	  layer.msg("删除失败",{icon:5});  
+                  }
+              }
+          });
+      });
+    } else if(layEvent === 'edit'){
+    	EidtTwo(data,obj);
+    }
+  });
+  
+  //获取搜索框和下拉框内容并重载
+  $('.layui-btn').on('click', function(){
+	  var keyWord=$("#keyWord").val();
+      var keyType=$("#key_type option:selected").val();
+      table.reload('demo',{
+          method:'post',
+          where:{keyWord:keyWord,keyType:keyType}
+      });
+  });
+  
+  //表单提交添加数据
+  function  AddUv(){
+	   layer.open({
+	   title:['添加用户信息','text-align: center'],
+	   type:1,
+	   area:['380px','400px'],
+	   content:$("#form1")
+	   }); 
+  };
+  
+  //获取表单信息编辑操作一
+  function  EidtOne(checkStatus,obj) {
+	    $("#id").val(checkStatus.data[0].id);
+	    $("#username").val(checkStatus.data[0].username);
+	    $("#password").val(checkStatus.data[0].password);
+	    $("#sex").val(checkStatus.data[0].sex);
+	    $("#age").val(checkStatus.data[0].age);
+	    $("#phone").val(checkStatus.data[0].phone);
+	        layer.open({
+	        title:['修改用户信息','text-align: center'],
+	        type:1,
+	        area:['380px','400px'],
+	        content:$("#form2")
+	    });
+  };
+  
+  //获取表单信息编辑操作二
+  function  EidtTwo(data,obj) {
+	    $("#id").val(data.id);
+	    $("#username").val(data.username);
+	    $("#password").val(data.password);
+	    $("#sex").val(data.sex);
+	    $("#age").val(data.age);
+	    $("#phone").val(data.phone);
+	        layer.open({
+	        title:['修改用户信息','text-align: center'],
+	        type:1,
+	        area:['380px','400px'],
+	        content:$("#form2")
+	    });
+  };
+  
+  //分页
+  laypage.render({
+    elem: 'pageDemo' //分页容器的id
+    ,count: 100 //总页数
+    ,skin: '#1E9FFF' //自定义选中色值
+    //,skip: true //开启跳页
+    ,jump: function(obj, first){
+      if(!first){
+        layer.msg('第'+ obj.curr +'页', {offset: 'b'});
+      }
+    }
+  });
+  
+  //执行一个轮播实例
+  carousel.render({
+    elem: '#test1'
+    ,width: '100%' //设置容器宽度
+    ,height: 200
+    ,arrow: 'none' //不显示箭头
+    ,anim: 'fade' //切换动画方式
+  });
+  
+  
+  //底部信息
+  var footerTpl = lay('#footer')[0].innerHTML;
+  lay('#footer').html(layui.laytpl(footerTpl).render({}))
+  .removeClass('layui-hide');
+  });
+
+</script>
+
+<!-- 添加数据的弹框-->
+<form class="layui-form layui-form-pane1" id="form1" name="form1" style="display: none;" action="../../admin/addUser" method="post" lay-filter="first1">  
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户名</label>
+        <div class="layui-input-inline">
+            <input type="text" name="username" lay-verify="required|" required placeholder="请输入用户名"  autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">密码</label>
+        <div class="layui-input-inline">
+            <input type="password" name="password" lay-verify="required|pass" placeholder="请输入密码" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+        
+    <div class="layui-form-item">
+        <label class="layui-form-label">性别</label>
+        <div class="layui-input-inline">
+            <input type="tel" name="sex" lay-verify="required|" placeholder="请输入性别" lay-verType="tips" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">年龄</label>
+        <div class="layui-input-inline">
+            <input type="tel" name="age" lay-verify="required|number" placeholder="请输入年龄" lay-verType="tips" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">电话</label>
+        <div class="layui-input-inline">
+            <input type="tel" name="phone" lay-verify="required|phone" placeholder="请输入电话号码" lay-verType="tips" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="*">添加</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+
+<!-- 修改的弹框 -->
+<form class="layui-form layui-form-pane1" id="form2" name="form2" style="display: none;" action="../../admin/updateUserById" method="post" lay-filter="first1">
+    <div class="layui-form-item" style="display: none">
+        <label class="layui-form-label">id</label>
+        <div class="layui-input-inline">
+            <input type="text" name="id" id="id" lay-verify="required|" required placeholder="请输入id" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户名</label>
+        <div class="layui-input-inline">
+            <input type="text" name="username" id="username" lay-verify="required|" required placeholder="请输入用户名"  autocomplete="off" class="layui-input"><!-- readonly="readonly" -->
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">密码</label>
+        <div class="layui-input-inline">
+            <input type="password" name="password" id="password" lay-verify="required|pass" placeholder="请输入密码" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">性别</label>
+        <div class="layui-input-inline">
+            <input type="tel" name="sex" id="sex" lay-verify="required|" placeholder="请输入性别" lay-verType="tips" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">年龄</label>
+        <div class="layui-input-inline">
+            <input type="tel" name="age" id="age" lay-verify="required|number" placeholder="请输入年龄" lay-verType="tips" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">电话</label>
+        <div class="layui-input-inline">
+            <input type="tel" name="phone" id="phone" lay-verify="required|" placeholder="请输入电话号码" lay-verType="tips" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="*">修改</button>
+        </div>
+    </div>
+</form>  
+</body>
+</html>

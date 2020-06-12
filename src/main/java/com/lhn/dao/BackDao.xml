@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhn.dao.BackDao">
+    <!-- user表操作 -->
+    <!-- 分页模糊查询 -->
+    <select id="selectUserList" parameterType="page" resultType="user">
+       select id,username,password,sex,age,phone from user
+       <if test="keyType=='110'">where id like concat('%',#{keyWord},'%') </if>
+       <if test="keyType=='111'">where username like concat('%',#{keyWord},'%') </if>
+       limit #{start},#{rows}
+    </select>
+    
+    <!-- 查询用户记录数 -->
+    <select id="selectUserCount" parameterType="page" resultType="Integer">
+       select count(*) from user
+       <if test="keyType=='110'">where id like concat('%',#{keyWord},'%') </if>
+       <if test="keyType=='111'">where username like concat('%',#{keyWord},'%') </if>
+    </select>
+    
+    <!-- 根据ID删除用户 -->
+    <delete id="deleteUserById" parameterType="Integer">
+       delete from user where id=#{id}
+    </delete> 
+    
+    <!-- 根据ID修改用户数据 -->
+    <update id="updateUserById" parameterType="user">
+       update user set 
+       username=#{username},password=#{password},sex=#{sex},age=#{age},phone=#{phone}
+       where id=#{id}
+    </update>
+    
+    <!-- 添加数据到user表 -->
+    <insert id="addUser" parameterType="user">
+       insert into user(username,password,sex,age,phone)
+       values(#{username},#{password},#{sex},#{age},#{phone}) 
+    </insert>
+    
+    
+    <!-- commodity表操作 -->
+    <!-- 分页模糊查询 -->
+    <select id="selectCommodityList" parameterType="page" resultType="commodity">
+       select id,imgSrc,commodityName,commodityClass,commodityMs,commodityGoodsNo,commodityMarketPrice,commoditySellPrice,
+       commodityStockNum,productName,productColor,productWeight,productSize,zxsj,zlbz,gzwd,bcwd 
+       from commodity
+       <if test="keyType=='110'">where commodityName like concat('%',#{keyWord},'%') </if>
+       <if test="keyType=='111'">where commodityGoodsNo like concat('%',#{keyWord},'%') </if>
+       <if test="keyType=='112'">where productName like concat('%',#{keyWord},'%') </if>
+       limit #{start},#{rows}
+    </select> 
+    
+    <!-- 查询商品记录数 -->
+    <select id="selectCommodityCount" parameterType="page" resultType="Integer">
+       select count(*) from commodity
+       <if test="keyType=='110'">where commodityName like concat('%',#{keyWord},'%') </if>
+       <if test="keyType=='111'">where commodityGoodsNo like concat('%',#{keyWord},'%') </if>
+       <if test="keyType=='112'">where productName like concat('%',#{keyWord},'%') </if>
+    </select>
+    
+    <!-- 添加数据到commodity表 -->
+    <insert id="addCommodity" parameterType="commodity">
+       insert into commodity(imgSrc,commodityName,commodityClass,commodityMs,commodityGoodsNo,commodityMarketPrice,
+       commoditySellPrice,commodityStockNum,productName,productColor,productWeight,productSize,zxsj,
+       zlbz,gzwd,bcwd)
+       values(#{imgSrc},#{commodityName},#{commodityClass},#{commodityMs},#{commodityGoodsNo},#{commodityMarketPrice},
+       #{commoditySellPrice},#{commodityStockNum},#{productName},#{productColor},#{productWeight},
+       #{productSize},#{zxsj},#{zlbz},#{gzwd},#{bcwd}) 
+    </insert>
+    
+    <!-- 根据ID删除商品 -->
+    <delete id="deleteCommodityById" parameterType="Integer">
+       delete from commodity where id=#{id}
+    </delete>
+    
+    <!-- 根据ID修改商品数据 -->
+    <update id="updateCommodityById" parameterType="commodity">
+       update commodity set 
+       imgSrc=#{imgSrc},commodityName=#{commodityName},commodityClass=#{commodityClass},
+       commodityMs=#{commodityMs},commodityGoodsNo=#{commodityGoodsNo},
+       commodityMarketPrice=#{commodityMarketPrice},commoditySellPrice=#{commoditySellPrice},
+       commodityStockNum=#{commodityStockNum},productName=#{productName},productColor=#{productColor},
+       productWeight=#{productWeight},productSize=#{productSize},zxsj=#{zxsj},zlbz=#{zlbz},gzwd=#{gzwd},
+       bcwd=#{bcwd} where id=#{id}
+    </update>
+</mapper>

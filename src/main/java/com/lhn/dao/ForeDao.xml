@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhn.dao.ForeDao">
+   <!-- 验证用户登录 -->
+    <select id="userLogin" resultType="user" parameterType="String">
+       select username,password from user where binary username=#{u_name} and binary password=#{u_pwd}  
+    </select>
+   <!-- 显示所有商品 -->
+   <select id="selectCommodityList" parameterType="page" resultType="commodity">
+       select id,imgSrc,commodityName,commodityMs,commodityGoodsNo,commodityMarketPrice,commoditySellPrice,
+       commodityStockNum,productName,productColor,productWeight,productSize,zxsj,zlbz,gzwd,bcwd 
+       from commodity where 1=1
+       <if test="eclass=='手机数码' or eclass=='家用电器' or eclass=='影音娱乐'">and commodityClass=#{eclass}</if>
+       <if test="pclass=='0-1000元'">and commoditySellPrice&gt;0 and commoditySellPrice&lt;=1000</if>
+       <if test="pclass=='1001-3000元'">and commoditySellPrice&gt;=1001 and commoditySellPrice&lt;=3000</if>
+       <if test="pclass=='3001-6000元'">and commoditySellPrice&gt;=3001 and commoditySellPrice&lt;=6000</if>
+       <if test="pclass=='6000元以上'">and commoditySellPrice&gt;6000</if>
+       <if test="keyWord!=null">and commodityName like concat('%',#{keyWord},'%')</if>
+       <if test="sclass=='价格从高到低'">order by commoditySellPrice desc</if>
+       <if test="sclass=='价格从低到高'">order by commoditySellPrice</if>
+       limit #{start},#{rows}
+   </select>
+   <!-- 查询商品记录数 -->
+   <select id="selectCommodityCount" parameterType="page" resultType="Integer">
+       select count(*) from commodity where 1=1
+       <if test="eclass=='手机数码' or eclass=='家用电器' or eclass=='影音娱乐'">and commodityClass=#{eclass}</if>
+       <if test="pclass=='0-1000元'">and commoditySellPrice&gt;0 and commoditySellPrice&lt;=1000</if>
+       <if test="pclass=='1001-3000元'">and commoditySellPrice&gt;=1001 and commoditySellPrice&lt;=3000</if>
+       <if test="pclass=='3001-6000元'">and commoditySellPrice&gt;=3001 and commoditySellPrice&lt;=6000</if>
+       <if test="pclass=='6000元以上'">and commoditySellPrice&gt;6000</if>
+       <if test="keyWord!=null">and commodityName like concat('%',#{keyWord},'%')</if>
+       <if test="sclass=='价格从高到低'">order by commoditySellPrice desc</if>
+       <if test="sclass=='价格从低到高'">order by commoditySellPrice</if>
+   </select>
+   <!-- 显示商品BYID -->
+   <select id="selectCommodityById" parameterType="Integer" resultType="commodity">
+       select id,imgSrc,commodityName,commodityMs,commodityGoodsNo,commodityMarketPrice,commoditySellPrice,
+       commodityStockNum,productName,productColor,productWeight,productSize,zxsj,zlbz,gzwd,bcwd 
+       from commodity where id=#{id} 
+   </select>
+   <!-- 查询商品在购物车中是否已存在 -->
+   <select id="cartYesOrNo" parameterType="cart" resultType="cart">
+       select nums from cart 
+       where binary username=#{username} and binary commodityGoodsNo=#{commodityGoodsNo} 
+       and binary purchasePlan=#{purchasePlan}
+   </select>
+   <!-- 更新购物车中购买商品的数量 -->
+   <update id="updateCart" parameterType="cart">
+       update cart set nums=#{nums} where username=#{username} and commodityGoodsNo=#{commodityGoodsNo}
+   </update>
+   <!-- 加入购物车 -->
+   <insert id="addCart" parameterType="cart">
+       insert into cart(username,commodityGoodsNo,nums,purchasePlan)
+       values(#{username},#{commodityGoodsNo},#{nums},#{purchasePlan}) 
+   </insert>
+   <!-- 显示购物车 -->
+   <select id="selectCartList" parameterType="cart" resultType="cC">
+       select co.id as commodityId,imgSrc,commodityName,commoditySellPrice,ca.id as cartId,nums
+       from commodity as co,cart as ca 
+       where ca.username=#{username} and co.commodityGoodsNo=ca.commodityGoodsNo and ca.purchasePlan=#{purchasePlan}
+   </select>
+   <!-- 通过ID更新cart表 -->
+   <update id="updateCartById" parameterType="cart">
+       update cart set nums=#{nums} where id=#{id}
+   </update>
+   <!-- 删除cart -->
+   <delete id="deleteCart" parameterType="Integer"> 
+       <if test="id!=null">delete from cart where id=#{id}</if>
+       <if test="purchasePlan=='ljgm'">delete from cart where purchasePlan=#{purchasePlan}</if>
+       <if test="purchasePlan=='jrgwc'">delete from cart where username=#{username} and purchasePlan=#{purchasePlan}</if>
+   </delete>
+   <!-- 显示地址 -->
+   <select id="selectAddressList" parameterType="address" resultType="address">
+       select id,name,phone,address,email from address 
+       where username=#{username}
+   </select>
+   <!-- 添加新地址 -->
+   <insert id="addAddress" parameterType="address">
+       insert into address(username,name,phone,address,email)
+       values(#{username},#{name},#{phone},#{address},#{email}) 
+   </insert>
+   <!-- 修改地址 -->
+   <insert id="updateAddressById" parameterType="Integer">
+       update address set name=#{name},phone=#{phone},address=#{address},email=#{email} where id=#{id} 
+   </insert>
+   <!-- 删除地址 -->
+   <insert id="deleteAddressById" parameterType="Integer">
+       delete from address where id=#{id}
+   </insert>
+   <!-- 保存用户购买记录 -->
+   <insert id="addRecord" parameterType="record">
+       insert into record(username,commodityId,nums,addressId,time)
+       values(#{username},#{commodityId},#{nums},#{addressId},#{time}) 
+   </insert>
+   <!-- 账户余额 -->
+   <select id="selectRechargeByUsername" parameterType="Recharge" resultType="recharge">
+       select money from recharge where username=#{username}
+   </select>
+   <!-- 查询username在recharge表中是否已存在 -->
+   <select id="rechargeYesOrNo" parameterType="recharge" resultType="recharge">
+       select money from recharge where binary username=#{username} 
+   </select>
+   <!-- 账户充值 -->
+   <insert id="addRecharge" parameterType="recharge">
+       insert into recharge(username,money)
+       values(#{username},#{money})
+   </insert>
+   <!-- 充值记录保存 -->
+   <insert id="addRechargeData" parameterType="rechargeData">
+       insert into rechargeData(username,money,time)
+       values(#{username},#{money},#{time})
+   </insert>
+   <!-- 账户余额修改 -->
+   <update id="updateRechargeByUsername" parameterType="recharge">
+       update recharge set money=#{money} where username=#{username}
+   </update>
+   <!-- 查看充值记录 -->
+   <select id="seletRechargeData" parameterType="rechargeData" resultType="rechargeData">
+       select id,money,time from rechargeData where username=#{username}
+   </select>
+   <!-- 账户余额修改 -->
+   <update id="updateUserByUsername" parameterType="user">
+       update user 
+       <if test="id==null">set headImg=#{headImg},sex=#{sex},age=#{age},phone=#{phone}</if>
+       <if test="id==1">set password=#{password}</if> 
+       where username=#{username}
+   </update>
+   <!-- show userifo in userCenter -->
+   <select id="selectUserByUsername" parameterType="user" resultType="user">
+       select * from user where username=#{username}
+   </select>
+   <!-- show Order -->
+   <select id="seletOrderByUsername" parameterType="record" resultType="order">
+       select record.id,commodityName,nums,name,address,time
+       from record,commodity,address
+       where record.username=#{username}
+       and address.username=#{username}
+       and commodity.id=commodityId
+       and address.id=addressId
+   </select>
+</mapper>

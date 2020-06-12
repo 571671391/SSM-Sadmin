@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>用户中心</title>
+    <link rel="stylesheet" type="text/css" href="../../css/common.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../layer/layer.js"></script>
+    <script type="text/javascript">
+       $(document).ready(function(){
+    	   $.ajax({
+    		   url:"../../rainbow/sendUsername",
+			   type: "post",
+			   dataType:"json",
+			   success:function(data){
+				   var username=data.username;
+				   $("#username").text(username);
+				   $("#cusername").text(username);
+				   $.ajax({
+					   url:"../../rainbow/showMoney",
+					   type:"post",
+					   data:JSON.stringify({username:username}),
+					   contentType:"application/json;charset=UTF-8",
+					   dataType:"json",
+					   success:function(data){
+						   $("#money").text(data.money);
+						   $("#amoney").text(data.money);
+					   },
+					   error:function(data){
+						   $("#money").text("0");
+						   $("#amoney").text("0");
+					   }
+				   });
+				   $.ajax({
+					   url:"../../rainbow/showUser",
+					   type:"post",
+					   data:JSON.stringify({username:username}),
+					   contentType:"application/json;charset=UTF-8",
+					   dataType:"json",
+					   success:function(data){
+						   $("#txtSex").text(data.sex);
+						   $("#txtAge").text(data.age);
+						   $("#txtPhone").text(data.phone);
+						   if(data.headImg!=null){
+							   $("#txtImg").attr("src",data.headImg+'?'+Math.random());
+						   }
+					   }
+				   });
+			   }
+    	   });
+       }) 
+       function recharge(){
+    	   var index=layer.open({
+    		   type : 1,
+    		   skin: "layui-layer-rim",
+    		   area:['450px','300px'],
+    		   title: ['账户充值','text-align: center'],
+    		   content: $("#a"),
+    		   btn: ['确定', '取消'],
+    		   yes: function (index) {
+    			   var username=$("#username").text();
+    			   var order_amount=$("#order_amount").val();
+    			   if(order_amount.length!=0){
+    				   $("#money").text(parseInt($("#money").text())+parseInt($("#order_amount").val()));
+        			   $.ajax({
+        				   url:"../../rainbow/addRecharge",
+    					   type:"post",
+    					   data:JSON.stringify({username:username,money:order_amount}),
+    					   contentType:"application/json;charset=UTF-8",
+        			   });
+        			   parent.layer.close(index);
+    			   }else{
+    				   layer.msg('不能为空',{icon:5});
+    			   }
+    		   }
+    	   })
+       }
+       function record(){
+    	   var username=$("#username").text();
+    	   $("#tbody1").empty();
+    	   $.ajax({
+    		   url:"../../rainbow/showRechargeData",
+			   type:"post",
+			   data:JSON.stringify({username:username}),
+			   contentType:"application/json;charset=UTF-8",
+			   dataType:"json",
+			   success:function(data){
+				   $.each(data,function(i,d){
+					   var dh="zx2019"+d.id;
+					   var ele='<tr><td align="center">'+d.id+'</td><td align="center">'+dh+'</td><td align="center">'+d.money+'</td><td align="center">'+d.time+'</td></tr>';
+					   $("#tbody1").append(ele);
+				   })
+			   }
+    	   });
+    	   var index=layer.open({
+    		   type : 1,
+    		   skin: "layui-layer-rim",
+    		   area:['575px','400px'],
+    		   title: ['充值记录','text-align: center'],
+    		   content: $("#b"),
+    	   })
+       }
+       function userData(){
+    	   var index=layer.open({
+    		   type : 1,
+    		   skin: "layui-layer-rim",
+    		   area:['575px','400px'],
+    		   title: ['用户信息修改','text-align: center'],
+    		   content: $("#c"),
+    		   btn: ['提交', '取消'],
+    		   yes: function (index) {
+    			   var username=$("#cusername").text();   	
+    			   var file=$("#img")[0].files[0];//document.getElementById("img").files[0]
+    			   if ((file.type).indexOf("image/") == -1) {
+                       layer.msg('请选择图片文件', {
+                           icon: 5,//提示的样式
+                           time: 2000,
+                       });
+                   }else {                	 
+                	   var getHz = (file.type).split("/");               	   
+                       var reader = new FileReader();
+                       reader.readAsDataURL(file);
+                       reader.onload = function (e) {
+                    	   var headImg = this.result.substring(this.result.indexOf(',') + 1); 
+                    	   var sex=$('input:radio[name="sex"]:checked').val();
+            			   var age=$("#age").val();
+            			   var phone=$("#phone").val();
+            			   $.ajax({
+            				   url:"../../rainbow/updateUserByUsername",
+        					   type:"post",
+        					   data:JSON.stringify({username:username,password:getHz[getHz.length -1],headImg:headImg,sex:sex,age:age,phone:phone}),
+        					   contentType:"application/json;charset=UTF-8",
+        					   dataType:"json",
+        					   success:function(data){
+        						   layer.msg("修改成功",{icon:6,time:2000},function(){							           				           
+        				               window.location.href="user.html";
+        				           });
+        					   }
+            			   });
+                       }                      
+                   }  			  
+    		   }
+    	   })
+       }
+       function pwd(){
+    	   var index=layer.open({
+    		   type : 1,
+    		   skin: "layui-layer-rim",
+    		   area:['475px','300px'],
+    		   title: ['修改密码','text-align: center'],
+    		   content: $("#d"),
+    		   btn: ['提交', '取消'],
+    		   yes: function (index) {
+    			   var username=$("#cusername").text();
+    			   var password=$("#password").val();
+    			   var password1=$("#password1").val();
+    			   var password2=$("#password2").val();
+    			   if(password1==password2){
+    				   $.ajax({
+        				   url:"../../rainbow/showUser",
+    					   type:"post",
+    					   data:JSON.stringify({id:1,username:username,password:password,headImg:password1}),
+    					   contentType:"application/json;charset=UTF-8",
+    					   dataType:"json",
+    					   success:function(data){
+    						   layer.msg('修改密码成功，请重新登录！',{icon:6},function(){
+    							   setTimeout('window.location.href("login.html")',200);
+    						   });
+    					   },
+    					   error:function(data){
+    						   layer.msg('原始密码错误！',{icon:5});
+    					   }
+        			   }); 
+    			   }else{
+    				   layer.msg('两次输入的密码不一致！',{icon:5});
+    			   }		   
+    		   }
+    	   })
+       }
+       function orderList(){
+    	   var username=$("#username").text();
+    	   $("#tbody2").empty();
+    	   $.ajax({
+    		   url:"../../rainbow/seletOrderByUsername",
+			   type:"post",
+			   data:JSON.stringify({username:username}),
+			   contentType:"application/json;charset=UTF-8",
+			   dataType:"json",
+			   success:function(data){
+				   $.each(data,function(i,d){
+					   var ele='<tr><td align="center">'+d.id+'</td><td align="center">'+d.commodityName+'</td><td align="center">'+d.nums+'</td><td align="center">'+d.name+'</td><td align="center">'+d.address+'</td><td align="center">'+d.time+'</td></tr>';
+					   $("#tbody2").append(ele);
+				   })
+			   }
+    	   });
+    	   var index=layer.open({
+    		   type : 1,
+    		   skin: "layui-layer-rim",
+    		   area:['875px','500px'],
+    		   title: ['订单记录','text-align: center'],
+    		   content: $("#e"),
+    	   })
+       }
+       function cart(){
+    	   if(confirm('是否前往购物车查看')){
+    		   window.location.href="cart.html";
+    	   }
+       }
+    </script>
+</head>
+<body>
+<div class="top-header">
+    <div class="section">
+        <div class="top-header-left f-left">
+            <a href="#">LOGO</a>
+        </div>
+        <div class="top-header-right f-right">
+            <a href="productlist.html">购物</a>
+            <a href="../../rainbow/closeUserSession">注销</a>
+            
+        </div>
+    </div>
+</div>
+
+<div class="section nav-header">
+    <ul class="nav-menus f-left">
+        <li><a href="login.html">首页</a></li>
+        <li><a href="productlist.html" >产品列表</a></li>
+        <li><a href="cart.html" >购物车</a></li>
+        <li><a href="user.html" class="active">用户中心</a></li>
+    </ul>
+    <div class="f-right nav-right">
+        <input type="text" name="search" class="seacher-input f-left" placeholder="输入关键字">
+        <input type="submit" class="seacher-but  f-left" value="搜索">
+    </div>
+</div>
+
+<div class="section clearfix" style="margin-top: 10px;">
+   <div class="bg-wrap" style="min-height:450px;">
+      <div class="center-head clearfix">
+         <div class="img-box">
+            <img id="txtImg" src="../../images/100.gif">
+         </div>
+         <div class="list-box">
+            <h3>欢迎您~<span id="username" style="font-size:16px"></span></h3>
+            <ul>
+               <li>性别：<span id="txtSex" style="font-size:16px"></span></li>
+               <li>年龄：<span id="txtAge" style="font-size:16px"></span></li>
+               <li>电话：<span id="txtPhone" style="font-size:16px"></span></li>
+               <li>账户余额：￥<span id="money" style="font-size:16px"></span></li>
+            </ul>
+         </div>
+      </div>
+      <div class="center-info clearfix">
+         <ul>
+            <li><a href="javascript:recharge()">账户充值</a></li>
+            <li><a href="javascript:record()">充值记录</a></li>
+            <li><a href="javascript:userData()">账户资料</a></li>
+            <li><a href="javascript:pwd()">修改密码</a></li>
+         </ul>
+      </div>
+      <div class="center-tit">
+          <h3><i class="iconfont icon-order"></i>我的订单</h3>
+      </div>
+      <div class="center-info clearfix">
+         <ul>
+            <li><a href="javascript:orderList()">已完成订单记录</a></li>
+            <li><a href="javascript:cart()">待完成订单记录</a></li>
+         </ul>
+      </div>
+   </div>
+</div>
+    <!-- 账户充值 -->
+    <div id="a" class="form-box" style="display:none">
+       <dl class="form-group">
+          <dt>账户余额：</dt>
+          <dd>
+                        当前账户金额为：￥<b id="amoney"></b>元
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>充值金额：</dt>
+          <dd>
+             <input name="order_amount" id="order_amount" type="text" class="input code">&nbsp;元
+             <span class="Validform_checktip"></span>
+          </dd>
+       </dl>
+    </div>
+    <!-- 充值记录 -->
+    <div id="b" class="bg-wrap" style="display:none">
+       <table width="100%" border="0" class="ftable">
+          <thead>
+             <tr>
+                <th width="6%" align="center">编号</th>
+                <th align="center" width="20%">充值单号</th>
+                <th width="12%" align="center">充值金额</th>
+                <th width="11%" align="center">时间</th>
+             </tr>
+          </thead>   
+          <tbody id="tbody1">    
+          </tbody>
+       </table>
+    </div>
+    <!-- 账户资料 -->
+    <div id="c" class="form-box" style="display:none">
+       <dl class="form-group">
+          <dt>用户名：</dt>
+          <dd id="cusername"></dd>
+       </dl>
+       <dl class="form-group">
+          <dt>头像：</dt>
+          <dd>
+             <input name="img" id="img" type="file">
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>性别：</dt>
+          <dd>
+             <label class="mart"><input name="sex" type="radio" value="男" checked="checked">男</label>
+             <label class="mart"><input name="sex" type="radio" value="女">女</label>
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>年龄：</dt>
+          <dd>
+             <input name="age" id="age" type="text" class="input">
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>电话：</dt>
+          <dd>
+             <input name="phone" id="phone" type="text" class="input">
+          </dd>
+       </dl>
+     </div>
+    <!-- 修改密码 -->
+    <div id="d" class="form-box" style="display:none">
+       <dl class="form-group">
+          <dt>旧密码：</dt>
+          <dd>
+             <input name="password" id="password" type="password" class="input">
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>新密码：</dt>
+          <dd>
+             <input name="password1" id="password1" type="password" class="input">
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>确认新密码：</dt>
+          <dd>
+             <input name="password2" id="password2" type="password" class="input">
+          </dd>
+       </dl>
+    </div>
+    <!-- 订单记录 -->
+    <div id="e" class="bg-wrap" style="display:none">
+       <table width="100%" border="0" class="ftable">
+          <thead>
+             <tr>
+                <th width="12%" align="center">编号</th>
+                <th align="center" width="12%">商品名称</th>
+                <th width="12%" align="center">购买数量</th>
+                <th width="12%" align="center">收货人姓名</th>
+                <th width="12%" align="center">收货地址</th>
+                <th width="12%" align="center">交易时间</th>
+             </tr>
+          </thead>   
+          <tbody id="tbody2">    
+          </tbody>
+       </table>
+    </div>
+</body>
+</html>

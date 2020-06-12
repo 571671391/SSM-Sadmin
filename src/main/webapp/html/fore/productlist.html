@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>商品展示页面</title>
+<link rel="stylesheet" type="text/css" href="../../css/common.css">
+<link rel="stylesheet" type="text/css" href="../../layui/css/layui.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript">
+  $(document).ready(function(){
+	  show(1,5,null,null,null,null);
+	  $.ajax({
+		   url:"../../rainbow/getCount",
+		   type:"post",
+		   data:JSON.stringify({page:1}),
+		   contentType:"application/json;charset=UTF-8",
+		   dataType:"json",
+		   success:function(data){ 
+			   layui.use('laypage', function(){
+			     var laypage = layui.laypage;
+			     laypage.render({
+			       elem: 'page',
+			       limit:'5',
+			       count:data.totalRecord,
+			       jump: function (obj, first) { //obj为当前页的属性和方法，第一次加载first为true
+			          //非首次加载 do something
+			          if (!first) {
+			          	   //清空以前加载的数据
+			              $('#addli').empty();
+			              //调用加载函数加载数据
+			              show(obj.curr,obj.limit,null,null,null,null);
+			          }
+			       }
+			   })
+		   });						   
+		   }
+	  });	  				  
+  })
+  function goodsClass(cla,val){
+	  if(cla=="eclass"){
+		  $("#eclass").find("a").removeClass();
+		  if(val=="eqb"){
+			  $("#"+val).attr("class","selected"); 
+		  }
+		  if(val=="sjsm"){
+			  $("#"+val).attr("class","selected"); 
+		  }
+		  if(val=="jydq"){
+			  $("#"+val).attr("class","selected");
+		  }
+		  if(val=="yyyl"){
+			  $("#"+val).attr("class","selected");
+		  }
+	  }
+	  if(cla=="pclass"){
+		  $("#pclass").find("a").removeClass();
+		  if(val=="pqb"){
+			  $("#"+val).attr("class","selected"); 
+		  }
+		  if(val=="a"){
+			  $("#"+val).attr("class","selected"); 
+		  }
+		  if(val=="b"){
+			  $("#"+val).attr("class","selected"); 
+		  }
+		  if(val=="c"){
+			  $("#"+val).attr("class","selected"); 
+		  }
+		  if(val=="d"){
+			  $("#"+val).attr("class","selected"); 
+		  }
+	  }
+	  if(cla=="sclass"){
+		  $("#sclass").find("a").removeClass();
+		  if(val=="sjsj"){
+			  $("#"+val).attr("class","selected"); 
+		  }
+		  if(val=="gd"){
+			  $("#"+val).attr("class","selected"); 
+		  }
+		  if(val=="dg"){
+			  $("#"+val).attr("class","selected"); 
+		  }
+	  }
+	  var eclass=$("#eclass").find(".selected").text();
+	  var pclass=$("#pclass").find(".selected").text();
+	  var sclass=$("#sclass").find(".selected").text();
+	  var keyWord=null;
+	  $('#addli').empty();
+	  show(1,5,eclass,pclass,sclass,keyWord);
+	  $.ajax({
+		   url:"../../rainbow/getCount",
+		   type:"post",
+		   data:JSON.stringify({eclass:eclass,pclass:pclass,sclass:sclass,keyWord:keyWord}),
+		   contentType:"application/json;charset=UTF-8",
+		   dataType:"json",
+		   success:function(data){ 
+			   layui.use('laypage', function(){
+			     var laypage = layui.laypage;
+			     laypage.render({
+			       elem: 'page',
+			       limit:'5',
+			       count:data.totalRecord,
+			       jump: function (obj, first) { //obj为当前页的属性和方法，第一次加载first为true
+			          //非首次加载 do something
+			          if (!first) {
+			          	   //清空以前加载的数据
+			              $('#addli').empty();
+			              //调用加载函数加载数据
+			              show(obj.curr,obj.limit,eclass,pclass,sclass,keyWord);
+			          }
+			       }
+			   })
+		   });						   
+		   }
+	  });
+  }
+  function search(){
+	  var eclass=$("#eclass").find(".selected").text();
+	  var pclass=$("#pclass").find(".selected").text();
+	  var sclass=$("#sclass").find(".selected").text();
+	  var keyWord=$("#search").val();
+	  $('#addli').empty();
+	  show(1,5,eclass,pclass,sclass,keyWord);
+	  $.ajax({
+		   url:"../../rainbow/getCount",
+		   type:"post",
+		   data:JSON.stringify({eclass:eclass,pclass:pclass,sclass:sclass,keyWord:keyWord}),
+		   contentType:"application/json;charset=UTF-8",
+		   dataType:"json",
+		   success:function(data){ 
+			   layui.use('laypage', function(){
+			     var laypage = layui.laypage;
+			     laypage.render({
+			       elem: 'page',
+			       limit:'5',
+			       count:data.totalRecord,
+			       jump: function (obj, first) { //obj为当前页的属性和方法，第一次加载first为true
+			          //非首次加载 do something
+			          if (!first) {
+			          	   //清空以前加载的数据
+			              $('#addli').empty();
+			              //调用加载函数加载数据
+			              show(obj.curr,obj.limit,eclass,pclass,sclass,keyWord);
+			          }
+			       }
+			   })
+		   });						   
+		   }
+	  });
+  }
+  function show(page,rows,eclass,pclass,sclass,keyWord){
+	  $.ajax({
+		   url:"../../rainbow/showCommodity",
+		   type: "post",
+		   data:JSON.stringify({page:page,rows:rows,eclass:eclass,pclass:pclass,sclass:sclass,keyWord:keyWord}),
+		   contentType:"application/json;charset=UTF-8",
+		   dataType:"json",
+		   success:function(data){
+			   $.each(data,function(i,d){
+				   var ele='<li><a href="details.html?id='+d.id+'"><div class="img-box"><div class="abs-txt">推荐</div><img src='+d.imgSrc+'></div><div class="info"><h3>'+d.commodityName+'</h3><p class="price"><b>¥'+d.commoditySellPrice+'</b>元</p><p><strong>库存 '+d.commodityStockNum+'</strong><span>市场价：<s>¥'+d.commodityMarketPrice+'</s></span></p></div></a></li>';
+				   $("#addli").append(ele);
+			   });
+		   },
+		   error:function(data){
+			   alert("出错了");
+		   }
+	  });
+  }
+</script>
+</head>
+<body>
+    <div class="top-header">
+    <div class="section">
+        <div class="top-header-left f-left">
+            <a href="#">LOGO</a>
+        </div>
+        <div class="top-header-right f-right">
+            <a href="login.html">登录</a>
+            <a href="register.html">注册</a>
+        </div>
+    </div>
+</div>
+
+<div class="section nav-header">
+    <ul class="nav-menus f-left">
+        <li><a href="login.html">首页</a></li>
+        <li ><a href="productlist.html"  class="active">商品列表</a></li>
+        <li><a href="cart.html">购物车</a></li>
+        <li><a href="user.html">用户中心</a></li>
+    </ul>
+    <div class="f-right nav-right">
+        <input type="text" id="search" class="seacher-input f-left" placeholder="输入关键字">
+        <input type="submit" class="seacher-but  f-left" value="搜索" onclick="search()">
+    </div>
+</div>
+
+<div class="section">
+    <div class="screen-box">
+        <!--分类-->
+        <dl>
+            <dt>分类：</dt>
+            <dd id="eclass">
+                <a id="eqb" class="selected" href="javascript:goodsClass('eclass','eqb');">全部</a>
+                <a id="sjsm" href="javascript:goodsClass('eclass','sjsm');">手机数码</a>
+                <a id="jydq" href="javascript:goodsClass('eclass','jydq');">家用电器</a>
+                <a id="yyyl" href="javascript:goodsClass('eclass','yyyl');">影音娱乐</a>
+            </dd>
+        </dl>
+        <!--/分类-->
+        <!--价格-->
+        <dl>
+            <dt>价格：</dt>
+            <dd id="pclass">
+                <a id="pqb" class="selected" href="javascript:goodsClass('pclass','pqb');">全部</a>
+                <a id="a" href="javascript:goodsClass('pclass','a');">0-1000元</a>
+                <a id="b" href="javascript:goodsClass('pclass','b');">1001-3000元</a>
+                <a id="c" href="javascript:goodsClass('pclass','c');">3001-6000元</a>
+                <a id="d" href="javascript:goodsClass('pclass','d');">6000元以上</a>
+            </dd>
+        </dl>
+        <!--/价格-->
+    </div>
+
+    <div id="sclass" class="sort-box">
+        <a id="sjsj" class="selected" href="javascript:goodsClass('sclass','sjsj');">上架时间</a>
+        <a id="gd" href="javascript:goodsClass('sclass','gd');">价格从高到低</a>
+        <a id="dg" href="javascript:goodsClass('sclass','dg');">价格从低到高</a>
+    </div>
+</div>
+
+
+<div class="section">
+    <ul id="addli" class="img-list">
+        <!--商品-->
+    
+    </ul>
+</div>
+<div class="section qitian-main">
+    <img src="../../images/qitian.png">
+</div>
+<div id="page" align="center" class="section qitian-main"></div>
+  </body>
+</html>

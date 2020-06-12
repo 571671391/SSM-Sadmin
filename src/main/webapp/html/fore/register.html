@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>注册页面</title>
+<link rel="stylesheet" type="text/css" href="../../css/common.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/check.js"></script>
+</head>
+<body>
+    <div class="top-header">
+    <div class="section">
+        <div class="top-header-left f-left">
+            <a href="#">LOGO</a>
+        </div>
+        <div class="top-header-right f-right">
+            <a href="index.html">登录</a>
+            <a href="register.html">注册</a>
+            <a href="../admin/login.html">后台</a>
+        </div>
+    </div>
+</div>
+
+<div class="section nav-header">
+    <ul class="nav-menus f-left">
+        <li><a href="index.html" class="active">首页</a></li>
+        <li ><a href="productlist.html">商品列表</a></li>
+        <li><a href="cart.html">购物车</a></li>
+        <li><a href="user.html">用户中心</a></li>
+    </ul>
+    <form action="" method="post">
+    <div class="f-right nav-right">
+        <input type="text" name="search" class="seacher-input f-left" placeholder="输入关键字">
+        <input type="submit" class="seacher-but  f-left" value="搜索">
+    </div>
+    </form>
+</div>
+
+
+<div class="section">
+    <div class="nav-tit">
+        <a class="selected" href="#">免费注册</a>
+        <i>|</i>
+        <a href="login.html">账户登录</a>
+    </div>
+    <form id="regform" name="regform" action="../../admin/addUser" method="post">
+        <div class="form-box full">
+            <dl class="form-group">
+                <dt>用 户 名：</dt>
+                <dd>
+                    <input id="ids" name="ids" type="hidden" value="zx110">
+                    <input id="username" name="username" type="text" class="input" placeholder="请输入登录用户名" >
+                    <span  id="s1" class="points"></span>
+                </dd>
+            </dl>
+            <dl class="form-group">
+                <dt>密&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;码：</dt>
+                <dd>
+                    <input id="password" name="password" type="password" class="input" placeholder="请输入登录密码" >
+                    <span  id="s2" class="points"></span>
+                </dd>
+            </dl>
+            <dl class="form-group">
+                <dt>性&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;别：</dt>
+                <dd>
+                    <input id="sex" name="sex" type="text" class="input" placeholder="请输入你的性别" >
+                    <span  id="s4" class="points"></span>
+                </dd>
+            </dl>
+           
+            <dl class="form-group">
+                <dt>年&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;龄：</dt>
+                <dd>
+                    <input id="age" name="age" type="text" class="input" placeholder="请输入你的年龄" >
+                    <span  id="s5" class="points"></span>
+                </dd>
+            </dl>
+            
+            <dl class="form-group">
+                <dt>电&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;话：</dt>
+                <dd>
+                    <input id="phone" name="phone" type="text" class="input" placeholder="输入你的电话号码" >
+                    <span  id="s6" class="points"></span>
+                </dd>
+            </dl>
+
+            <dl class="form-group">
+                <dd>
+                    <input id="btnSubmit" name="btnSubmit" type="submit" value="立即注册" class="submit" >
+                </dd>
+            </dl>
+        </div>
+    </form>
+</div>
+
+
+<div class="section qitian-main">
+    <img src="../../images/qitian.png">
+</div>
+  </body>
+</html>

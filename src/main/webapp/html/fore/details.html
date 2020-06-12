@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>商品详细信息页面</title>
+<link rel="stylesheet" type="text/css" href="../../css/common.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript">
+   $(document).ready(function(){
+	  //获取地址字符串
+	  var url=window.location.search;
+	  //从地址字符串中取出超链接传的值
+	  var id= url.substring(url.lastIndexOf('=')+1, url.length); 
+	  //导入插件jquery.params.js可使用  var id = $.query.get("id");
+	  if(id==null||id==""){
+		  window.location.href="productlist.html";
+	  }else{
+		  $.ajax({
+			   url:"../../rainbow/selectCommodityById",
+			   type: "post",
+			   async:false,
+			   data:JSON.stringify({id:id}),
+			   contentType:"application/json;charset=UTF-8",
+			   dataType:"json",
+			   success:function(data){
+				   $("#imgSrc").attr("src",data.imgSrc);
+				   $("#commodityName").text(data.commodityName);
+				   $("#commodityMs").text(data.commodityMs);
+				   $("#commodityGoodsNo").text(data.commodityGoodsNo);
+				   $("#commodityMarketPrice").text("￥"+data.commodityMarketPrice);
+				   $("#commoditySellPrice").text("￥"+data.commoditySellPrice);
+				   $("#commodityStockNum").text(data.commodityStockNum);
+				   $("#productName").append(data.productName);
+				   $("#productColor").append(data.productColor);
+				   $("#productWeight").append(data.productWeight);
+				   $("#productSize").append(data.productSize);
+				   $("#zxsj").append(data.zxsj);
+				   $("#zlbz").append(data.zlbz);
+				   $("#gzwd").append(data.gzwd);
+				   $("#bcwd").append(data.bcwd);
+				   $.ajax({
+					   url:"../../rainbow/sendUsername",
+					   type:"post",
+					   async:false,
+					   dataType:"json",
+					   success:function(data){
+						   if(data.username!=null){
+							   $("#username").text("当前用户："+data.username);
+						   }else{
+							   $("#username").attr("href","login.html");
+							   $("#username").text("未登录");
+						   }   						   
+					   }
+				  });
+			   },
+			   error:function(data){
+				   alert("出错了！");
+			   }
+		  });
+	  }
+   })
+   
+   function addCart(exp){
+	   var username=document.getElementById("username").innerHTML.replace("当前用户：","");
+	   var commodityGoodsNo=$("#commodityGoodsNo").text();
+	   var nums=$("#num").val();
+	   if(username=="未登录"){
+		   alert("请先登录");
+		   window.location.href="index.html";
+	   }else{
+		   if(exp=="ljgm"){
+			   $.ajax({
+				    url:"../../rainbow/addCart",
+					type:"post",
+					data:JSON.stringify({username:username,commodityGoodsNo:commodityGoodsNo,nums:nums,purchasePlan:exp}),
+					contentType:"application/json;charset=UTF-8",
+					dataType:"json",
+					success:function(data){ 
+						window.location.href="writeorder.html?spy="+exp;
+					}
+			   });
+		   }else if(exp=="jrgwc"){   
+			   $.ajax({
+					url:"../../rainbow/addCart",
+					type:"post",
+					data:JSON.stringify({username:username,commodityGoodsNo:commodityGoodsNo,nums:nums,purchasePlan:exp}),
+					contentType:"application/json;charset=UTF-8",
+					dataType:"json",
+					success:function(data){
+					   alert("加入购物车成功，可点击购物车查看！");  
+					},
+					error:function(data){	
+					   alert("加入购物车失败！");
+					}
+			   });
+		   }else{
+			   alert("系统错误!");
+		   }
+	   }
+	}
+	   
+   function edit(obj){
+	   if(obj.value=="+"){
+		   $("#num").val(parseInt($("#num").val())+1);
+	   }else if($("#num").val()>1){
+		   $("#num").val(parseInt($("#num").val())-1);
+	   }
+   }
+</script>
+</head>
+<body>
+    <div class="top-header">
+    <div class="section">
+        <div class="top-header-left f-left">
+            <a href="#">LOGO</a>
+        </div>
+        <div class="top-header-right f-right">
+            <a href="#" id="username"></a>
+            <a href="#">注销</a>
+        </div>
+    </div>
+</div>
+
+<div class="section nav-header">
+    <ul class="nav-menus f-left">
+        <li><a href="login.html">首页</a></li>
+        <li ><a href="productlist.html"  class="active">商品列表</a></li>
+        <li><a href="cart.html">购物车</a></li>
+        <li><a href="user.html">用户中心</a></li>
+    </ul>
+    <form action="" method="post">
+    <div class="f-right nav-right">
+        <input type="text" name="search" class="seacher-input f-left" placeholder="输入关键字">
+        <input type="submit" class="seacher-but  f-left" value="搜索">
+    </div>
+    </form>
+</div>
+
+
+<div class="section">
+    <div class="wrapper clearfix">
+        <div class="wrap-box">
+                <div class="goods-box clearfix">
+                    <!--商品图片-->
+                    <div class="goods-pic">
+                        <!--幻灯片-->
+                        <div class="pic-box">
+                            <div class="pic-preview">
+                                <span class="jqzoom">
+                                    <img id="imgSrc">
+                                </span>
+                            </div>
+                        </div>
+                        <!--/幻灯片-->
+                    </div>
+                    <!--/商品图片-->
+
+                    <!--商品信息-->
+                    <div class="goods-spec">
+                        <h1 id="commodityName"></h1>
+                        <p id="commodityMs" class="subtitle"></p>
+                        <div class="spec-box">
+                            <dl>
+                                <dt>货号</dt>
+                                <dd id="commodityGoodsNo"></dd>
+                            </dl>
+                            <dl>
+                                <dt>市场价</dt>
+                                <dd><s id="commodityMarketPrice"></s></dd>
+                            </dl>
+                            <dl>
+                                <dt>销售价</dt>
+                                <dd><em class="price" id="commoditySellPrice"></em></dd>
+                            </dl>
+                        </div>
+
+                        <div class="spec-box">
+                            <dl>
+                                <dt>购买数量</dt>
+                                <dd>
+                                    <div class="stock-box" style="line-height: 30px;">
+                                       <strong>
+                                         <input type="button" value="-" onclick=edit(this) style="border:none;background:#ffffff;width:25px;height:25px">
+                                         <input type="number" id="num" readonly ="readonly" value="1" style="border:solid 1px #666;width:32px;height:28px">
+                                         <input type="button" value="+" onclick=edit(this) style="border:none;background:#ffffff;width:25px;height:25px">
+                                       </strong>
+                                    </div>
+                                    <span class="stock-txt">
+                                        库存<em id="commodityStockNum"></em>件
+                                    </span>
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dd>
+                                    <div class="btn-buy" id="buyButton">
+                                      <form class="btn-buy">
+                                        <input type="button" class="buy" value="立即购买" onclick="addCart('ljgm')">
+                                      </form>                                   
+                                    </div>
+                                    <div class="btn-buy" id="buyButton">
+                                      <input type="button" class="add" value="加入购物车" onclick="addCart('jrgwc')">
+                                    </div>
+                                </dd>
+                            </dl>
+                        </div>
+
+
+                    </div>
+                    <!--/商品信息-->
+                </div>
+
+        </div>
+    </div>
+
+    <div id="goodsTabs" class="goods-tab bg-wrap">
+        <!--选项卡-->
+        <div id="tabHead" class="tab-head">
+            <ul>
+                <li>
+                    <a class="selected" href="javascript:;">商品介绍</a>
+                </li>
+
+            </ul>
+        </div>
+        <!--/选项卡-->
+
+        <!--选项内容-->
+        <div class="tab-content entry" style="display:block;">
+            <p>
+                <span id="productName" class="yhbb">品名：</span><br>
+                <span id="productColor" class="yhbb">颜色：</span><br>
+                <span id="productWeight" class="yhbb">重量：</span><br>
+                <span id="productSize" class="yhbb">尺寸：</span><br>
+                <span id="zxsj" class="yhbb">造型设计：</span><br>
+                <span id="zlbz" class="yhbb">质量保证：</span><br>
+                <span id="gzwd" class="yhbb">工作温度：</span><br>
+                <span id="bcwd" class="yhbb">保存温度：</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="section qitian-main">
+    <img src="../../images/qitian.png">
+</div>
+  </body>
+</html>

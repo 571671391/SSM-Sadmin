@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>填写收货地址页面</title>
+<link rel="stylesheet" type="text/css" href="../../css/common.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../layer/layer.js"></script>
+<script type="text/javascript" src="../../js/PCASClass.js"></script>
+<script type="text/javascript">
+   window.onload=function(){
+       //初始化省市区
+       var mypcas = new PCAS("txtProvince,所属省份","txtCity,所属城市","txtArea,所属地区");
+   }
+   $(document).ready(function(){
+	   var url=window.location.search;
+	   var spy= url.substring(url.lastIndexOf('=')+1, url.length);
+	   if(spy=="ljgm"){
+		   $.ajax({
+			   url:"../../rainbow/sendUsername",
+			   type: "post",
+			   async:false,
+			   dataType:"json",
+			   success:function(data){
+				   $("#username").text("当前用户："+data.username);
+				   var username=data.username;
+				   $.ajax({
+					   url:"../../rainbow/showAddress",
+					   type:"post",
+					   async:false,
+					   data:JSON.stringify({username:username}),
+					   contentType:"application/json;charset=UTF-8",
+					   dataType:"json",
+					   success:function(data){
+						   $.each(data,function(i,d){
+							   var ele='<tr height=60 id='+d.id+'><td align="center"><input type="radio" value="'+d.id+'" /></td><td align="center">'+d.name+'</td><td align="center">'+d.phone+'</td><td align="center">'+d.address+'</td><td align="center">'+d.email+'</td><td align="center"><a href="javascript:upd('+d.id+');">修改</a>&nbsp;&nbsp;&nbsp;<a href="javascript:del('+d.id+');">删除</a></td></tr>';
+							   $("#address").append(ele);	
+						   })
+					   }
+				   });
+				   $.ajax({
+					   url:"../../rainbow/showCart",
+					   type:"post",
+					   async:false,
+					   data:JSON.stringify({username:username,purchasePlan:"ljgm"}),
+					   contentType:"application/json;charset=UTF-8",
+					   dataType:"json",
+					   success:function(data){
+						   var sum=0;
+						   var total=0;
+						   $.each(data,function(i,d){
+							   sum=sum+d.nums;
+							   total=total+d.commoditySellPrice*d.nums;
+							   var ele='<tr><td width="68"><a href="details.html?id='+d.commodityId+'"><img src="'+d.imgSrc+'" class="img"></a></td><td><a href="details.html?id='+d.commodityId+'">'+d.commodityName+'</a><p class="stxt"></p></td><td align="center">￥'+d.commoditySellPrice+'<input type="hidden" value="'+d.commodityId+'"/></td><td align="center"><div class="buy-box"><span class="goodsQuantity">'+d.nums+'</span></div></td><td align="center">￥'+d.commoditySellPrice*d.nums+'</td></tr>';
+							   $("#commodity").append(ele);
+						   })
+						   $("#sum").text(sum);
+						   $("#total").html("￥"+total);
+					   }
+				   });
+			   },
+			   error:function(data){
+				   alert("出错了！");
+			   }
+		   });
+	   }else{
+		   $.ajax({
+			   url:"../../rainbow/sendUsername",
+			   type: "post",
+			   async:false,
+			   dataType:"json",
+			   success:function(data){
+				   $("#username").text("当前用户："+data.username);
+				   var username=data.username;
+				   $.ajax({
+					   url:"../../rainbow/showAddress",
+					   type:"post",
+					   async:false,
+					   data:JSON.stringify({username:username}),
+					   contentType:"application/json;charset=UTF-8",
+					   dataType:"json",
+					   success:function(data){
+						   $.each(data,function(i,d){
+							   var ele='<tr height=60 id='+d.id+'><td align="center"><input type="radio" value="'+d.id+'" /></td><td align="center">'+d.name+'</td><td align="center">'+d.phone+'</td><td align="center">'+d.address+'</td><td align="center">'+d.email+'</td><td align="center"><a href="javascript:upd('+d.id+');">修改</a>&nbsp;&nbsp;&nbsp;<a href="javascript:del('+d.id+');">删除</a></td></tr>';
+							   $("#address").append(ele);	
+						   })
+					   }
+				   });
+				   $.ajax({
+					   url:"../../rainbow/showCart",
+					   type:"post",
+					   async:false,
+					   data:JSON.stringify({username:username,purchasePlan:"jrgwc"}),
+					   contentType:"application/json;charset=UTF-8",
+					   dataType:"json",
+					   success:function(data){
+						   var sum=0;
+						   var total=0;
+						   $.each(data,function(i,d){
+							   sum=sum+d.nums;
+							   total=total+d.commoditySellPrice*d.nums;
+							   var ele='<tr><td width="68"><a href="details.html?id='+d.commodityId+'"><img src="'+d.imgSrc+'" class="img"></a></td><td><a href="details.html?id='+d.commodityId+'">'+d.commodityName+'</a><p class="stxt"></p></td><td align="center">￥'+d.commoditySellPrice+'<input type="hidden" value="'+d.commodityId+'"/></td><td align="center"><div class="buy-box"><span class="goodsQuantity">'+d.nums+'</span></div></td><td align="center">￥'+d.commoditySellPrice*d.nums+'</td></tr>';
+							   $("#commodity").append(ele);
+						   })
+						   $("#sum").text(sum);
+						   $("#total").html("￥"+total);
+					   }
+				   });
+			   },
+			   error:function(data){
+				   alert("出错了！");
+			   }
+		   });
+	   }
+   })
+   function record(){
+	   var url=window.location.search;
+	   var spy= url.substring(url.lastIndexOf('=')+1, url.length);
+	   var username=$("#username").text().replace("当前用户：","");
+	   var addressId=$("input[type='radio']:checked").val();
+	   var time=(new Date()).toLocaleDateString();
+	   if(addressId==null){
+		   alert("请选择收货地址");
+	   }else{
+		   var total=parseInt($("#total").html().replace("￥",""));
+		   $.ajax({
+			   url:"../../rainbow/showMoney",
+			   type:"post",
+			   data:JSON.stringify({username:username}),
+			   contentType:"application/json;charset=UTF-8",
+			   dataType:"json",
+			   success:function(data){
+				   if(data.money>=total){
+					   var money=data.money-total;
+					   $.ajax({
+						   url:"../../rainbow/updateRechargeByUsername",
+						   type:"post",
+						   data:JSON.stringify({username:username,money:money}),
+						   contentType:"application/json;charset=UTF-8",
+						   dataType:"json",
+						   success:function(data){
+							   
+						   }
+					   });
+					   $("#commodity tr").each(function(){
+							var commodityId=$(this).find("td").eq(2).find("input").val();
+							var nums=$(this).find("td").eq(3).text();
+							$.ajax({
+								url:"../../rainbow/addRecord",
+								type:"post",
+								data:JSON.stringify({username:username,commodityId:commodityId,nums:nums,addressId:addressId,time:time}),
+								contentType:"application/json;charset=UTF-8",
+								dataType:"json"
+							});
+					   })
+					   if(spy==null||spy==""){
+						   $.ajax({
+								url:"../../rainbow/deleteCart",
+								type:"post",
+								async: false,
+								data:JSON.stringify({username:username,purchasePlan:"jrgwc"}),
+								contentType:"application/json;charset=UTF-8",
+								dataType:"json",
+								success:function(data){
+									
+								}
+							});
+					   }
+					   window.location.href="pay.html";
+				   }else{
+					   alert("余额不足，请前往用户中心充值！");
+				   }
+			   },
+			   error:function(data){
+				   alert("bbb");
+			   }
+		   });
+	   }
+   }
+   //表单提交添加数据
+   function add(){
+	   var index=layer.open({
+		   type : 1,
+		   skin: "layui-layer-rim",
+		   area:['575px','425px'],
+		   title: ['添加新地址','text-align: center'],
+		   content: $("#add"),
+		   btn: ['提交', '取消'],
+		   yes: function (index) { 
+			   var username=$("#username").text().replace("当前用户：","");
+			   var txtAcceptName=$("#txtAcceptName").val();
+			   var txtTelphone =$("#txtTelphone").val();
+			   var address=$("#txtProvince option:selected").val()+$("#txtCity option:selected").val()+$("#txtArea option:selected").val()+$("#txtAddress").val();
+		       var txtEmail=$("#txtEmail").val();
+		       $.ajax({
+		    	    url:"../../rainbow/addAddress",
+					type:"post",
+					data:JSON.stringify({username:username,name:txtAcceptName,phone:txtTelphone,address:address,email:txtEmail}),
+					contentType:"application/json;charset=UTF-8",
+					dataType:"json",
+					success:function(data){
+						layer.msg("添加成功",{icon:6},function(){
+		             	  setTimeout('window.location.reload()',1);
+		             	});
+					},
+					error:function(data){
+						layer.msg("添加失败",{icon:5});
+					}
+		       });
+		       parent.layer.close(index);
+		   }
+	   });   
+   }  
+   //修改地址
+   function upd(id){
+	   $("#acceptName").val($("#"+id).find("td").eq(1).text());
+	   $("#telphone").val($("#"+id).find("td").eq(2).text());
+	   $("#xxAddress").val($("#"+id).find("td").eq(3).text());
+	   $("#email").val($("#"+id).find("td").eq(4).text());
+	   var index=layer.open({
+		   type : 1,
+		   skin: "layui-layer-rim",
+		   area:['575px','400px'],
+		   title: ['修改地址','text-align: center'],
+		   content: $("#upd"),
+		   btn: ['提交', '取消'],
+		   yes: function (index) { 
+			   var acceptName=$("#acceptName").val();
+			   var telphone=$("#telphone").val();
+			   var xxAddress=$("#xxAddress").val();
+			   var email=$("#email").val();
+		       $.ajax({
+		    	    url:"../../rainbow/updateAddressById",
+					type:"post",
+					data:JSON.stringify({id:id,name:acceptName,phone:telphone,address:xxAddress,email:email}),
+					contentType:"application/json;charset=UTF-8",
+					dataType:"json",
+					success:function(data){
+						layer.msg("修改成功",{icon:6},function(){
+		             	  setTimeout('window.location.reload()',1);
+		             	});
+					},
+					error:function(data){
+						layer.msg("修改失败",{icon:5});
+					}
+		       });
+		   }
+	   });
+   }
+   //删除地址
+   function del(id){
+	   layer.confirm('真的删除行么', function(index){
+		   $.ajax({
+		       url:"../../rainbow/deleteAddressById",
+			   type:"post",
+			   data:JSON.stringify({id:id}),
+			   contentType:"application/json;charset=UTF-8",
+			   dataType:"json",
+		       success:function(data){
+		    	   layer.msg("删除成功",{icon:6});
+		    	   $("#"+id).remove();  
+			   },
+			   error:function(data){
+				   layer.msg("删除失败",{icon:5});	  
+			   }
+		   }); 
+	   }) 
+   }
+</script>
+</head>
+<body>
+<div class="top-header">
+    <div class="section">
+        <div class="top-header-left f-left">
+            <a href="#">LOGO</a>
+        </div>
+        <div class="top-header-right f-right">
+            <a href="javascript:;" id="username"></a>
+            <a href="../../rainbow/closeUserSession">注销</a>
+        </div>
+    </div>
+</div>
+
+<div class="section nav-header">
+    <ul class="nav-menus f-left">
+        <li><a href="login.html">首页</a></li>
+        <li><a href="productlist.html">商品列表</a></li>
+        <li><a href="cart.html" class="active">购物车</a></li>
+        <li><a href="user.html">用户中心</a></li>
+    </ul>
+    <div class="f-right nav-right">
+        <input type="text" name="search" class="seacher-input f-left" placeholder="输入关键字">
+        <input type="button" class="seacher-but  f-left" value="搜索">
+    </div>
+</div>
+
+
+<div class="section">
+    <div class="cart-head">
+        <h2>我的购物车</h2>
+        <div class="cart-setp">
+            <ul>
+                <li class="first active">
+                    <div class="progress">
+                        <span>1</span>
+                                                               放进购物车
+                    </div>
+                </li>
+                <li class="active">
+                    <div class="progress ">
+                        <span>2</span>
+                                                              填写订单信息
+                    </div>
+                </li>
+                <li class="last">
+                    <div class="progress">
+                        <span>3</span>
+                                                               支付/确认订单
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<div class="section">
+    <h2 class="slide-tit">
+        <span>1、收货地址</span>
+    </h2>
+    <div class="form-box address-info"> 
+       <table width="100%" align="center" class="cart-table" border="0" cellspacing="0" cellpadding="8">
+          <thead>
+            <tr>
+              <th align="center" width=80>选项</th>
+              <th align="center" width=130>姓名</th>
+              <th align="center" width=160>电话</th>
+              <th align="center" width=400>地址</th>
+              <th align="center" width=160>邮箱</th>
+              <th align="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="address">
+          
+          </tbody>
+       </table>      
+       <div align="left" class="top">
+          <input type="button" class="add" onclick="add()" value="添加地址">
+       </div>
+    
+    </div>
+
+    <h2 class="slide-tit">
+        <span>2、商品清单</span>
+    </h2>
+    <table width="100%" align="center" class="cart-table" border="0" cellspacing="0" cellpadding="8">
+        <thead>
+          <tr>
+            <th align="left" colspan="2">商品信息</th>
+            <th width="84" align="center">单价</th>
+            <th width="104" align="center">数量</th>
+            <th width="104" align="center">金额(元)</th>
+          </tr>
+        </thead>
+        <tbody id="commodity">
+        
+        </tbody>
+    </table>
+    <h2 class="slide-tit">
+        <span>3、结算信息</span>
+    </h2>
+
+    <div class="buy-foot">
+        <div class="right-box">
+            <p class="txt-box">
+                商品 <label class="price" id="sum" style="font-size:18px;"></label> 件&nbsp;&nbsp;&nbsp;&nbsp;
+                应付总金额：<label id="total" class="price" style="font-size:18px;"></label>
+            </p>
+            <p class="btn-box">
+                <a class="btn button" href="cart.html">返回购物车</a>
+                <input type="submit" class="btn submit" onclick="record()" value="确认提交">
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- 添加地址弹框 -->  
+<div id="add" class="form-box" style="display:none">
+       <dl class="form-group">
+          <dt>收件人姓名：</dt>
+          <dd>
+             <input name="txtAcceptName" id="txtAcceptName" type="text" class="input">
+             <span class="Validform_checktip"></span>
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>所属地区：</dt>
+           <dd>
+             <select id="txtProvince" name="txtProvince" class="select"><option value="">所属省份</option><option value="北京市">北京市</option><option value="天津市">天津市</option><option value="河北省">河北省</option><option value="山西省">山西省</option><option value="内蒙古自治区">内蒙古自治区</option><option value="辽宁省">辽宁省</option><option value="吉林省">吉林省</option><option value="黑龙江省">黑龙江省</option><option value="上海市">上海市</option><option value="江苏省">江苏省</option><option value="浙江省">浙江省</option><option value="安徽省">安徽省</option><option value="福建省">福建省</option><option value="江西省">江西省</option><option value="山东省">山东省</option><option value="河南省">河南省</option><option value="湖北省">湖北省</option><option value="湖南省">湖南省</option><option value="广东省">广东省</option><option value="广西壮族自治区">广西壮族自治区</option><option value="海南省">海南省</option><option value="重庆市">重庆市</option><option value="四川省">四川省</option><option value="贵州省">贵州省</option><option value="云南省">云南省</option><option value="西藏自治区">西藏自治区</option><option value="陕西省">陕西省</option><option value="甘肃省">甘肃省</option><option value="青海省">青海省</option><option value="宁夏回族自治区">宁夏回族自治区</option><option value="新疆维吾尔自治区">新疆维吾尔自治区</option><option value="香港特别行政区">香港特别行政区</option><option value="澳门特别行政区">澳门特别行政区</option><option value="台湾省">台湾省</option><option value="其它">其它</option></select>
+             <select id="txtCity" name="txtCity" class="select"><option value="">所属城市</option></select>
+             <select id="txtArea" name="txtArea" class="select"><option value="">所属地区</option></select>
+             <span class="Validform_checktip"></span>
+           </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>详细地址：</dt>
+          <dd>
+             <input name="txtAddress" id="txtAddress" type="text" class="input" maxlength="255">
+             <span class="Validform_checktip"></span>
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>联系电话：</dt>
+          <dd>
+             <input name="txtTelphone" id="txtTelphone" type="text" class="input" maxlength="30">
+             <span class="Validform_checktip"></span>
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>电子邮箱：</dt>
+          <dd>
+             <input name="txtEmail" id="txtEmail" type="text" class="input" maxlength="30">
+             <span class="Validform_checktip"></span>
+          </dd>
+       </dl>
+</div>
+<!-- 修改地址弹框 -->
+<div id="upd" class="form-box" style="display:none">
+       <dl class="form-group">
+          <dt>收件人姓名：</dt>
+          <dd>
+             <input name="acceptName" id="acceptName" type="text" class="input">
+             <span class="Validform_checktip"></span>
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>详细地址：</dt>
+          <dd>
+             <input name="xxAddress" id="xxAddress" type="text" class="input" maxlength="255">
+             <span class="Validform_checktip"></span>
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>联系电话：</dt>
+          <dd>
+             <input name="telphone" id="telphone" type="text" class="input" maxlength="30">
+             <span class="Validform_checktip"></span>
+          </dd>
+       </dl>
+       <dl class="form-group">
+          <dt>电子邮箱：</dt>
+          <dd>
+             <input name="email" id="email" type="text" class="input" maxlength="30">
+             <span class="Validform_checktip"></span>
+          </dd>
+       </dl>
+</div>                 
+</body>
+</html>
